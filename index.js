@@ -1,79 +1,54 @@
-const http = require('http');
 const express=require('express');
 const app=express();
 const bodyParser=require('body-parser');
 app.use(bodyParser.urlencoded());
-const adminRoutes=require('./routes/admin')
-const shopRouter=require('./routes/shop')
 
-app.use('/admin',adminRoutes);
-app.use('/shop',shopRouter);
+const fs=require('fs');
 
-app.use('/',(req,res,next)=>{
-   res.status(404).send('<h1>Page not found</h1>')
+app.get('/login',(req,res)=>{
+  res.send('<form onsubmit="localStorage.setItem(`username`, document.getElementById(`username`).value)" action="/login" method="POST" > User Name: <input type="text" id="username" name="username"> <br> <input type="submit"> </form>')
 })
-
+app.post('/login',(req,res)=>{
+  res.redirect('/');
+})
+app.get('/', (req, res) => {
+  if (fs.existsSync('message.txt')) {
+    fs.readFile('message.txt', 'utf8', (err, data) => {
+      if (err) {
+        res.status(500);
+        return;
+      }
+      res.send(`
+      <h1>${data}</h1>
+      <form action="/" method="POST" onsubmit="document.getElementById('username').value = localStorage.getItem('username')">
+        Message: <input type="text" name="message"><br>
+        <input id="username" name="username" type="hidden">
+        <input type="submit" value="send">
+      </form>
+    `);
+    });
+  } else {
+    res.send(`
+    <h1></h1>
+    <form action="/" method="POST" onsubmit="document.getElementById('username').value = localStorage.getItem('username')">
+      Message: <input type="text" name="message"><br>
+      <input id="username" name="username" type="hidden">
+      <input type="submit" value="send">
+    </form>
+  `);
+  }
+});
+app.post('/',(req,res)=>{
+  const username=req.body.username;
+  const message=req.body.message
+  fs.appendFile('message.txt', username+":"+message +"<br>",'utf8', (err) => {
+    if (err) {
+      res.status(500);
+      return;
+    }
+  });
+res.redirect('/');
+})
 app.listen(3000, () => {
   console.log('Server is running on port 3000');
 });
-
-// Nodejs Basics
-// const http = require('http');
-// const server = http.createServer((req, res) => {
-//   if (req.url === '/home') {
-//     res.write('Welcome home');
-//     res.end();
-//   } else if (req.url === '/about') {
-//     res.write('Welcome to About Us page');
-//     res.end();
-//   } else if (req.url === '/node') {
-//     res.write('Welcome to my Node.js project');
-//     res.end();
-//   }
-// });
-// server.listen(3000, () => {
-//   console.log('Server is running on port 3000');
-// });
-
-
-//FILE IN NODEJS (READ AND WRITE)
-// const http = require('http');
-// const fs = require('fs');
-// const server = http.createServer((req, res) => {
-//  if (req.url === '/') {
-//   let message = '';
-//   if (fs.existsSync('message.txt')) {
-//    message = fs.readFileSync('message.txt', 'utf8');
-//   }
-//   res.write(`
-//    <body>
-//     <h1>${message}</h1>
-//     <form action="/message" method="POST">
-//      <input type="text" name="data"> <br>
-//      <input type="submit">
-//     </form>
-//    </body>
-//   `);
-//   res.end();
-//  } else if (req.url === '/message' && req.method === 'POST') {
-//   let body = '';
-//   req.on('data', (chunk) => {
-//    body += chunk;
-//   });
-//   req.on('end', () => {
-//    const message = body.split('=')[1]; 
-//    fs.writeFile('message.txt', message, (err) => {
-//     if (err) {
-//      console.error(err);
-//     } else {
-//      res.statusCode = 302;          
-//      res.setHeader('Location', '/');
-//     }
-//     res.end();
-//    });
-//   });
-//  }
-// });
-// server.listen(3000, () => {
-//  console.log('Server is running on port 3000');
-// });
