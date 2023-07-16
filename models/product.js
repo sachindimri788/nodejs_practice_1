@@ -21,14 +21,12 @@ const Product = sequelize.define('product', {
   description: {
     type: Sequelize.STRING,
     allowNull: false
-  },
-  
+  }
 },
 {
   createdAt: false,
   updatedAt: false,
   freezeTableName: true,
-}
-);
+});
 
 module.exports = Product;
